@@ -7,7 +7,7 @@
 O **Kubernetes** é uma ferramenta de orquestração de containers.
 
 - Open Source
-- Altamente utilizado penas empresas.
+- Altamente utilizado pelas empresas.
 - Gerencia todo ciclo de vida de um container
 
 ## 🛡️ Imutabilidade no Kubernetes
@@ -19,3 +19,5 @@ A **imutabilidade** é uma característica essencial no Kubernetes que promove a
 - Cada alteração resulte em um **novo objeto ou versão**, mantendo o histórico de mudanças sob controle (ex: _ReplicaSet, Deployment_).
 
 Esse comportamento está alinhado com os princípios de **infraestrutura imutável** e **automação contínua**, tornando os sistemas mais confiáveis e previsíveis em ambientes dinâmicos.
+
+## Estratégia de deploy
