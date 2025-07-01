@@ -144,3 +144,16 @@ strategy:
 ---
 
 ## 🛜 Kubernetes Networking
+
+- Container to Container
+- Pod to Pod Intra Node.
+- Pod to Pod Inter Node.
+  O Kubernetes provê uma rede virtual plana dentro do cluster, garantindo que todos os pods possam se comunicar entre si de forma transparente, independentemente de estarem em worker nodes on-premises ou em ambientes de nuvem pública, como AWS ou Azure, desde que estejam integrados ao mesmo cluster.
+
+**Exercício**
+
+- Criar yamls de pods do tomcat e redis.
+- Descrever o pod do redis em busca do IP: `kubectl describe pod | grep IP`
+- No pod do tomcat, instalar pacote de redes para teste de ping: `apt update -y && apt install iputils-ping`
+- Entrar no pod do tomcat: `kubectl exec -it tomcat-pod -- bash`
+- Por fim, executar o ping para o IP do pod do redis: `ping <ip-redis>`
