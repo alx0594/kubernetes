@@ -127,7 +127,7 @@ kubectl scale deployment/frontend-deployment --replicas=11
 - **Down**
 
 ```bash
-kubectl scale deployment/frontend-deployment --replicas=11
+kubectl scale deployment/frontend-deployment --replicas=5
 ```
 
 ### Estratégias de deploy `Recreate`
@@ -157,3 +157,96 @@ strategy:
 - No pod do tomcat, instalar pacote de redes para teste de ping: `apt update -y && apt install iputils-ping`
 - Entrar no pod do tomcat: `kubectl exec -it tomcat-pod -- bash`
 - Por fim, executar o ping para o IP do pod do redis: `ping <ip-redis>`
+
+## 🗂️ Namespaces
+
+- Usado para fazer uma organização lógica dentro do cluster
+- Mecanismo para isolar grupos de recursos dentro de um cluster. (argocd, istio-system, tools, etc)
+- Não é permitido aninhamento de namespaces, ou seja, um namespace dentro do outro.
+
+**Comandos**
+
+- kubectl get ns
+- kubectl get pods -n default
+- kubectl get pods -n kube-system (Vários pods executando neste namespace estrutural do kubernetes)
+- kubectl create namespace frontend --save-config
+- kubectl apply -f Udemy/networking/tomcat.yaml --namespace=frontend
+- kubectl config set-context --current --namespace=frontend **Alterando o namespace default, agora passa a ser frontend**
+- kubectl apply -f Udemy/backend-namespace.yaml **Criando namespace através de arquivo de manifesto**
+- kubectl apply -f Udemy/networking/redis.yaml -n backend-ns
+
+## 📨 Services
+
+### ClusterIP
+
+- Serviço Padrão do Kubernetes.
+- Usado para comunicação interna do cluster.
+- Acessível apenas dentro do cluster.
+- Não é possível acessá-lo de forma externa sem um proxy.
+
+- **port** Qual porta o serviço será disponibilizado.
+- **targetPort** Porta disponibilizada pela aplicação dentro do container. Caso não seja declarado, usará o mesmo que **port**
+
+- Pods não trabalham com IP's estáticos, ou seja, sempre que são reiniciados, seus IP's mudam.
+- Por isso importância do service, o client chama o service, sem se preocupar os IP's do pod.
+- Ai que entra o Kube-DNS. Resolve os caminhos até o pod.
+
+**Prática**
+
+1. Executar aplicação dos manifestos:
+   kubectl apply -f Udemy/serviceClusterIP/pod.yaml
+   kubectl apply -f Udemy/serviceClusterIP/service.yaml
+
+2. Criar um outro pode de forma imperativa: `kubectl run -it debian-pod --image=debian bash`
+
+- Executar `apt update`
+- Executar `apt install curl -y`
+- Executar curl no serviço `curl 10.108.130.220:80 `.
+- `kubectl get services --all-namespace -o wide`
+
+### NodePort Service
+
+É aberto uma porta em nosso node para que possa ter acesso ao "mundo" exterior ao cluster.
+
+**Atributos Obrigatórios/Opcional**
+
+- port -> Obrigatório
+- targetPort -> Opcional (Se omitido, será assumido valor de port)
+- nodePort -> Opcional (Se for omitido será preenchido com valor aleatório de portas: 30000 até 32767)
+
+![NodePort](/imagens/nodePort.png)
+
+- Acessar aplicação via NodePort
+  curl http://localhost:30008
+
+- Formas de obter IPS do node:
+  kubectl get nodes -o wide (INTERNAL-IP)
+  kubectl get nodes -o yaml | grep address
+  addresses: - address: 192.168.65.3 - address: docker-desktop
+
+### LoadBalancer Service
+
+- Serviço atrelado à nuvem publica.
+  ![LoadBalancer Service](../imagens/load_balancer.png)
+
+- Recomendado uso com Cloud Controller Manager (C-CM)
+
+- Implementando serviço load balancer
+  `type: LoadBalancer`
+
+### ExternalName
+
+- Acesso a um banco de dados externo, por exemplo.
+- Acesso de dentro para fora do cluster.
+  ![externalService](../imagens/externalService.png)
+
+## 🩺🔍 LivenessProbe
+
+- Verificadores de sanidade..
+- Executados pelo agente kubelet
+- Ação de restarting container
+- Pode verificar um deadlock
+
+**Apply Pod com Liveness**
+
+`kubectl apply -f Udemy/LivenessProbe/pod.yaml && sleep 5 && kubectl get pods && sleep 30 && kubectl describe pod liveness-pod && sleep 35 && kubectl describe pod liveness-pod && sleep 30 && kubectl describe pod liveness-pod && kubectl get pods liveness-pod`
