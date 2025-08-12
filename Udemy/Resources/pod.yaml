@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: resources-pod
+spec:
+  containers:
+    - name: apache-container
+      image: httpd
+      resources:
+        requests: # recursos mínimos para rodar a aplicação.
+          cpu: "500m" # metade de uma CPU.
+          memory: "128Mi"
+        limits:
+          cpu: "1000m"
+          memory: "256Mi"
+
+    - name: redis-container
+      image: redis
+      resources:
+        requests: # recursos mínimos para rodar a aplicação.
+          cpu: "400m" # metade de uma CPU.
+          memory: "64Mi"
+        limits:
+          cpu: "500m"
+          memory: "128Mi"

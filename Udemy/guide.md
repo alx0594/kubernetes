@@ -250,3 +250,97 @@ strategy:
 **Apply Pod com Liveness**
 
 `kubectl apply -f Udemy/LivenessProbe/pod.yaml && sleep 5 && kubectl get pods && sleep 30 && kubectl describe pod liveness-pod && sleep 35 && kubectl describe pod liveness-pod && sleep 30 && kubectl describe pod liveness-pod && kubectl get pods liveness-pod`
+
+## Resources
+
+### Requests
+
+- Recursos Mínimos (CPU, Mem) necessário para a aplicação (contêiner).
+- Os recursos são requisitados por contêineres, não por pod.
+- Recursos requisitados com base na soma de todos contêineres dentro do pod.
+- Escalador k8s. Garante que a somatória de todos os pods não exceda a capacidade do node.
+
+### Limits
+
+- Define o máximo de recurso que o contêiner pode usar.
+
+## Volumes
+
+- Diretório que nossos contêineres usarão para guardar e acessar arquivos.
+
+- Não há limites para quantidade de volumes de um pod.
+- Volumes efêmeros: Ligado a vida útil do pod.
+- Persistent Voluments:
+- Volume Mount: Caminho de montagem do volume.
+- emptyDir: Tipo de volume efêmero, ligado a vida útil do pod. Em restart de contêiner ele continua vivo.
+
+- Entrar no volume, escrever em um arquivo: `echo "oi volume" >> test.txt`
+
+- Instalar: `apt install procps -y`
+
+- Comando: `ps aux` listará os processos dentro do pod.
+
+- Finalizar o container redis: `kill 1`
+
+- kubectl get pod: `redis-pod       1/1     Running   1 (12s ago)   18m`
+
+**O arquivo ainda está lá no volumes**
+
+```bash
+root@redis-pod:/my-volume# ls
+test.txt
+```
+
+- Deletando o Pod: `kubectl delete pod redis-pod`
+- O volume foi recriado, logo, não temos mais o arquivo test.txt
+
+### Volume: hostPath
+
+- Volume que resiste o restart de contêiner.
+- Também resiste caso o pod venha ser removido e recriado.
+- Volume que consegue uma presistência de dados.
+- Persistência feita dentro do worker node (Node File System)
+- Os dados permanecerão até que o worker seja removido, ou deletados manualmente.
+
+**Criar o manifesto**
+
+- `kubectl apply -f Udemy/VolumesHostPath/pod.yaml`
+- `kubectl exec -it redis-pod -- bash`
+- `cd my-data`
+- echo "HostPaht" >> hostpath.txt
+
+**Agora, já que estamos usando HostPath, vamos encontrar o arquivo no Worker (/var/lib/2-persist)**
+
+- Como estou usando docker desktop, preciso do seguinte passo para acessar o diretório no "worker"
+
+1. Executar:
+
+```bash
+docker run -it --privileged --pid=host justincormack/nsenter1
+```
+
+2. `cd /var/lib/2-persist`
+
+3. `cat hostpath.txt`
+
+## DaemonSets
+
+- Fortemente ligado ao node
+- Programa executado continuamente em segundo plano.
+- Geralmente udados para:
+  - Logs
+  - Monitoração
+  - Dectar invasões
+- Consegue replicar pod em cada node.
+- Se eu tiver 100 nodes, o daemonset, irá aplicar o pod em questão em todos estes nodes.
+- Parecido com o replicaset, note a semelhança entre os manifestos:
+  ![alt text](../imagens/daemonset_manifest.png)
+
+### kind com 3 nodes
+
+- No docker desktop, ativar kind com 3 nodes.
+- Aplicar manifesto do DaemonSet: `kubectl apply -f Udemy/DaemonSet/daemonset.yaml `
+
+- Get Daemonset. `kubectl get ds`
+- Ver pods nos nodes: `kubectl get pods -o wide`
+- O pod criado através do DaemonSet, fica sob sua tutela, logo, ao tentar excluir o pod, o mesmo será criado novamente.
